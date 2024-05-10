@@ -9,7 +9,7 @@ import org.springframework.web.bind.annotation.GetMapping;
 @RestController
 @RequestMapping("api")
 public class BookController {
-    @GetMapping("welcom")
+    @GetMapping("welcome")
     public String welcome() {
         return "welcome to the spring boot";
     }   
