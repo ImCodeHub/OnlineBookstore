@@ -1,11 +1,14 @@
 package com.book.OnlineBookstore.Controller;
 
 import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.multipart.MultipartFile;
 
+import com.book.OnlineBookstore.Entity.Book;
 import com.book.OnlineBookstore.Model.AddBook;
 import com.book.OnlineBookstore.ServiceImpl.BookServiceImpl;
 
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestPart;
 
 import java.util.List;
 
@@ -28,9 +31,13 @@ public class BookController {
 
     // To add book
     @PostMapping("/addbook")
-    public ResponseEntity<String> createBook(@RequestBody AddBook book) {
-        String response = bookServiceImpl.addBook(book);
-        return new ResponseEntity<>(response, HttpStatus.CREATED);
+    public ResponseEntity<String> createBook(@RequestPart("book") Book addBook, @RequestPart("image") MultipartFile imageFile) {
+        try {
+            String saveBook = bookServiceImpl.addBook(addBook, imageFile);
+            return new ResponseEntity<>(saveBook, HttpStatus.CREATED);
+        } catch (Exception e) {
+            return new ResponseEntity<>("somthing went wrong while saving book details!", HttpStatus.INTERNAL_SERVER_ERROR);
+        }
     }
 
     // To Retrive all book in list
