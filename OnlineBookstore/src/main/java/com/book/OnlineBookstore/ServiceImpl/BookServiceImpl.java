@@ -9,6 +9,7 @@ import java.util.List;
 import java.util.Optional;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
@@ -17,7 +18,6 @@ import com.book.OnlineBookstore.Model.AddBook;
 import com.book.OnlineBookstore.Repository.BookRepository;
 import com.book.OnlineBookstore.Service.BookService;
 
-import lombok.Value;
 
 @Service
 public class BookServiceImpl implements BookService {
@@ -39,6 +39,9 @@ public class BookServiceImpl implements BookService {
             addBook.setImage(path.toString());
             bookRepository.save(addBook);
             return "book details saved successfully!";
+        }
+        else{
+            return "image file is empty.";
         }
        
     }
