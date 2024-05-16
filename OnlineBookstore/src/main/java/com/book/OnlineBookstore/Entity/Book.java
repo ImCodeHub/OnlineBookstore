@@ -21,8 +21,6 @@ public class Book {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    private byte[] image;
-
     private String title;
 
     private String author;
@@ -35,16 +33,18 @@ public class Book {
     private String genre;
 
     private int price;
+    
+    private String image;
 
-    public Book(byte[] image, String title, String author, int publicationYear, String isbn, String genre,
-            int price) {
-        this.image = image;
+    public Book(String title, String author, int publicationYear, String isbn, String genre,
+            int price, String image) {
         this.title = title;
         this.author = author;
         this.publicationYear = publicationYear;
         this.isbn = isbn;
         this.genre = genre;
         this.price = price;
+        this.image = image;
     }
 
 }

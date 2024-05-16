@@ -9,18 +9,18 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 @NoArgsConstructor
 public class AddBook {
-    private byte[] image; 
-
+    
     private String title;
-
+    
     private String author;
-
+    
     private int publicationYear;
 
     private String isbn;
 
     private String genre;
-
+    
     private int price;
-
+    
+    private String image; 
 }
