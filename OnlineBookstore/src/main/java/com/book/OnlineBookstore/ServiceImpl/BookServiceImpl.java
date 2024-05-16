@@ -1,33 +1,46 @@
 package com.book.OnlineBookstore.ServiceImpl;
 
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.web.multipart.MultipartFile;
 
 import com.book.OnlineBookstore.Entity.Book;
 import com.book.OnlineBookstore.Model.AddBook;
 import com.book.OnlineBookstore.Repository.BookRepository;
 import com.book.OnlineBookstore.Service.BookService;
 
+import lombok.Value;
+
 @Service
 public class BookServiceImpl implements BookService {
+
+    @Value("${upload.dir}")
+    private String uploadDir;
 
     @Autowired
     BookRepository bookRepository;
 
     @Override
-    public String addBook(AddBook addBook) {
-        try {
-            Book book = new Book(addBook.getTitle(), addBook.getAuthor(), addBook.getPublicationYear(),
-                    addBook.getIsbn(), addBook.getGenre(), addBook.getPrice(), addBook.getImage());
-            bookRepository.save(book);
+    public String addBook(Book addBook, MultipartFile imageFile) throws IOException{
+        if(imageFile != null && !imageFile.isEmpty()){
+            String imageFileName = System.currentTimeMillis()+"_"+imageFile.getOriginalFilename();
+            Path path = Paths.get(uploadDir, imageFileName);
+            Files.createDirectories(path.getParent());
+            Files.write(path, imageFile.getBytes()); 
+
+            addBook.setImage(path.toString());
+            bookRepository.save(addBook);
             return "book details saved successfully!";
-        } catch (Exception e) {
-            return "something went wrong: " + e.getMessage();
         }
+       
     }
 
     @Override
@@ -107,4 +120,6 @@ public class BookServiceImpl implements BookService {
         }
 
     }
+
+    
 }
