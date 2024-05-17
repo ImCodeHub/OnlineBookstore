@@ -5,6 +5,7 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.ArrayList;
+import java.util.Base64;
 import java.util.List;
 import java.util.Optional;
 
@@ -18,7 +19,6 @@ import com.book.OnlineBookstore.Model.AddBook;
 import com.book.OnlineBookstore.Repository.BookRepository;
 import com.book.OnlineBookstore.Service.BookService;
 
-
 @Service
 public class BookServiceImpl implements BookService {
 
@@ -28,26 +28,56 @@ public class BookServiceImpl implements BookService {
     @Autowired
     BookRepository bookRepository;
 
-    @Override
-    public String addBook(Book addBook, MultipartFile imageFile) throws IOException{
-        if(imageFile != null && !imageFile.isEmpty()){
-            String imageFileName = System.currentTimeMillis()+"_"+imageFile.getOriginalFilename();
+    // Method to save image in directory.
+    public String saveImage(MultipartFile imageFile) throws IOException {
+        if (imageFile != null && !imageFile.isEmpty()) {
+            String imageFileName = System.currentTimeMillis() + "_" + imageFile.getOriginalFilename();
             Path path = Paths.get(uploadDir, imageFileName);
             Files.createDirectories(path.getParent());
-            Files.write(path, imageFile.getBytes()); 
+            Files.write(path, imageFile.getBytes());
+            return imageFileName;
+        }
+        return "image file not found.";
+    }
 
-            addBook.setImage(path.toString());
-            bookRepository.save(addBook);
-            return "book details saved successfully!";
-        }
-        else{
-            return "image file is empty.";
-        }
-       
+    // created saprate method to get encoded image from directory. 
+    public String getEncodedImageFromDirectory(String imageFile){
+        Path imagePath = Paths.get(uploadDir).resolve(imageFile);
+            try {
+                byte[] imageBytes = Files.readAllBytes(imagePath);
+                String encodedImage = Base64.getEncoder().encodeToString(imageBytes);
+                return "data:image/jpeg;base64," + encodedImage;
+            } catch (IOException e) {
+
+                return null;
+            }
     }
 
     @Override
-    public List<AddBook> getBooks() {
+    public byte[] getImageById(Long id) {
+        Book book = bookRepository.findById(id).orElseThrow(() -> new RuntimeException("Book not found"));
+
+        Path imagePath = Paths.get(uploadDir).resolve(book.getImage());
+        try {
+            return Files.readAllBytes(imagePath);
+        } catch (IOException e) {
+            throw new RuntimeException("could not read file" + e.getMessage(), e);
+        }
+    }
+
+    @Override
+    public String addBook(Book addBook, MultipartFile imageFile) throws IOException {
+        if (addBook != null) {
+            addBook.setImage(saveImage(imageFile));
+            bookRepository.save(addBook);
+            return "book details saved successfully!";
+        } else {
+            return "image file is empty.";
+        }
+    }
+
+    @Override
+    public List<AddBook> getAllBooks() {
         List<AddBook> response = new ArrayList<>();
         List<Book> books = bookRepository.findAll();
         for (Book book : books) {
@@ -58,8 +88,10 @@ public class BookServiceImpl implements BookService {
             addBook.setIsbn(book.getIsbn());
             addBook.setGenre(book.getGenre());
             addBook.setPrice(book.getPrice());
-            addBook.setImage(book.getImage());
 
+            // Retrive and encode the image file.
+            addBook.setImage(getEncodedImageFromDirectory(book.getImage()));
+           
             response.add(addBook);
         }
         return response;
@@ -70,7 +102,7 @@ public class BookServiceImpl implements BookService {
         List<AddBook> response = new ArrayList<>();
         Optional<Book> optional = bookRepository.findById(id);
 
-        if(optional.isPresent()){
+        if (optional.isPresent()) {
             Book books = optional.get();
             AddBook addBook = new AddBook();
             addBook.setTitle(books.getTitle());
@@ -82,7 +114,7 @@ public class BookServiceImpl implements BookService {
             addBook.setImage(books.getImage());
 
             response.add(addBook);
-        }else{
+        } else {
             return null;
         }
         return response;
@@ -93,7 +125,7 @@ public class BookServiceImpl implements BookService {
         Optional<Book> optional = bookRepository.findById(id);
         Book book = optional.get();
 
-        if(!optional.isPresent()){
+        if (!optional.isPresent()) {
             return "book details not found.";
         }
 
@@ -108,21 +140,20 @@ public class BookServiceImpl implements BookService {
         bookRepository.save(book);
 
         return "book details updated successfully!";
-        
+
     }
 
     @Override
     public Boolean deleteBook(Long id) {
         Optional<Book> optiion = bookRepository.findById(id);
-        if(optiion.isPresent()){
+        if (optiion.isPresent()) {
             bookRepository.deleteById(id);
             return true;
 
-        }else{
+        } else {
             return false;
         }
 
     }
 
-    
 }
