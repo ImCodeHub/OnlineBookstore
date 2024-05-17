@@ -17,10 +17,10 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
-import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
+
 
 @RestController
 @RequestMapping("api")
@@ -30,7 +30,7 @@ public class BookController {
     BookServiceImpl bookServiceImpl;
 
     // To add book
-    @PostMapping("/addbook")
+    @PostMapping(value = "/addbook", consumes = "multipart/form-data")
     public ResponseEntity<String> createBook(@RequestPart("book") Book addBook, @RequestPart("image") MultipartFile imageFile) {
         try {
             String saveBook = bookServiceImpl.addBook(addBook, imageFile);
@@ -43,9 +43,10 @@ public class BookController {
     // To Retrive all book in list
     @GetMapping("/books")
     public ResponseEntity<List<AddBook>> BookList() {
-        List<AddBook> books = bookServiceImpl.getBooks();
+        List<AddBook> books = bookServiceImpl.getAllBooks();
         return new ResponseEntity<>(books, HttpStatus.OK);
     }
+
 
     // Retrive the single book details
     @GetMapping("/book/{id}")
@@ -58,10 +59,11 @@ public class BookController {
         }
     }
 
+    // Update the book details and image of book. 
     @PutMapping("updateBook/{id}")
-    public ResponseEntity<String> updateBook(@PathVariable Long id, @RequestBody AddBook addBook) {
+    public ResponseEntity<String> updateBook(@PathVariable Long id, @RequestPart("book") AddBook addBook, @RequestPart("image") MultipartFile imageFile) {
         try {
-            String response = bookServiceImpl.updateBookDetails(id, addBook);
+            String response = bookServiceImpl.updateBookDetails(id, addBook, imageFile );
             return new ResponseEntity<>(response, HttpStatus.OK);
         } catch (Exception e) {
             return new ResponseEntity<>("Something went wrong", HttpStatus.NOT_FOUND);
